@@ -14,9 +14,13 @@ browser.visit(url)
 
 # Optional delay for loading the page
 browser.is_element_present_by_css("ul.item_list li.slide", wait_time=1)
+
+# Convert the browser html to a soup object and then quit the browser
 html = browser.html
 news_soup = soup(html, 'html.parser')
+
 slide_elem = news_soup.select_one('ul.item_list li.slide')
+
 slide_elem.find("div", class_='content_title')
 
 # Use the parent element to find the first 'a' tag and save it as 'news_title'
@@ -26,6 +30,8 @@ news_title
 # Use the parent element to find the paragraph text
 news_p = slide_elem.find("div", class_="article_teaser_body").get_text()
 news_p
+
+# ## JPL Space Images Featured Image 
 
 # Visit URL
 url = 'https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars'
@@ -52,10 +58,15 @@ img_url_rel
 img_url = f"https://www.jpl.nasa.gov{img_url_rel}"
 img_url
 
+# ## Mars Facts
+
 df = pd.read_html('http://space-facts.com/mars/')[0]
-df.columns=['description', 'value']
+df.head()
+
+df.columns=['Description', 'Mars']
 df.set_index('description', inplace=True)
 df
+
 df.to_html()
 
 browser.quit()
