@@ -1,28 +1,24 @@
-# Import Splinter, BeautifulSoup, and Chromedriver
+# Import Splinter, BeautifulSoup, ChromeDriver, and Pandas
 from splinter import Browser
 from bs4 import BeautifulSoup as soup
 from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
-import datetime as dt
-
 
 def scrape_all():
-
-    # Initiate headess driver for deployment
+    
     # Set the executable path and initialize the chrome browser in splinter
     executable_path = {'executable_path': ChromeDriverManager().install()}
-    browser = Browser('chrome', **executable_path, headless=True)
-    
+    browser = Browser('chrome', **executable_path, headless=False)
+
     news_title, news_paragraph = mars_news(browser)
     
-
     # Run all scraping functions and store results in dictionary
     data = {
         "news_title": news_title,
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
-        "hemispheres": hemispheres(browser),
+        "hemispheres": hemi_list,
         "last_modified": dt.datetime.now()
     }
 
@@ -52,14 +48,16 @@ def mars_news(browser):
         # Use the parent element to find the first 'a' tag and save it as 'news_title'
         news_title = slide_elem.find("div", class_='content_title').get_text()
         # Use the parent element to find the paragraph text
-        news_p = slide_elem.find("div", class_="article_teaser_body").get_text()
-        
+        news_p = slide_elem.find(
+            "div", class_="article_teaser_body").get_text()
+
     except AttributeError:
         return None, None
 
     return news_title, news_p
 
-# ## JPL Space Images Featured Image 
+# ## JPL Space Images Featured Image
+
 
 def featured_image(browser):
 
@@ -90,10 +88,12 @@ def featured_image(browser):
 
     # Use the base URL to create an absolute URL
     img_url = f"https://www.jpl.nasa.gov{img_url_rel}"
-        
+
     return img_url
 
 # ## Mars Facts
+
+
 def mars_facts():
     # Add try/except for error handling
     try:
@@ -104,12 +104,13 @@ def mars_facts():
         return None
 
     # Assign columns and set index of dataframe
-    df.columns=['Description', 'Mars']
+    df.columns = ['Description', 'Mars']
     df.set_index('Description', inplace=True)
 
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html()
 
+# ### Mars Weather
 
 def hemispheres(browser):
 
@@ -129,7 +130,7 @@ def hemispheres(browser):
 
     # ### Hemispheres
 
-    # 1. Use browser to visit the URL
+    # 1. Use browser to visit the URL 
     url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
     browser.visit(url)
 
@@ -142,7 +143,7 @@ def hemispheres(browser):
 
     hemi_title = hemi_soup.find_all("h3")
     hemi_titles = []
-    rel_urls = []
+    rel_urls =[]
     for title in hemi_title:
         hemi_title = title.text
         hemi_titles.append(hemi_title)
@@ -150,35 +151,34 @@ def hemispheres(browser):
             browser.visit(url)
             html = browser.html
             hemi_soup = soup(html, 'html.parser')
-
+            
             link_element = browser.links.find_by_partial_text(title)
             link_element.click()
-
+                
             hypertext = browser.html
             img_soup = soup(hypertext, 'html.parser')
-
-            rel_url = img_soup.select_one("img.wide-image").get('src')
+                
+            rel_url =  img_soup.select_one("img.wide-image").get('src')
             if rel_url not in rel_urls:
                 rel_urls.append(rel_url)
-
+            
     for url in rel_urls:
         full_img_url = f'https://astrogeology.usgs.gov{url}'
         hemisphere_image_urls.append(full_img_url)
-
+        
     hemi_zip = zip(hemisphere_image_urls, hemi_titles)
     hemi_list = []
     for img_url, title in hemi_zip:
         hemispheres = {}
-
+        
         hemispheres['img_url'] = img_url
-
+        
         hemispheres['title'] = title
-
+        
         hemi_list.append(hemispheres)
 
     # 4. Print the list that holds the dictionary of each image url and title.
     return hemi_list
 
-if __name__ == "__main__":
-    # If running as script, print scraped data
-    print(scrape_all())
+    # 5. Quit the browser
+    browser.quit()
