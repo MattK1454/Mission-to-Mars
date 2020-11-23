@@ -6,7 +6,7 @@ The purpose of this project was the development of a webscraping app to introduc
 
 ## Results
 
-![Featured Image]()
+![Featured Image](https://github.com/MattK1454/Mission-to-Mars/blob/main/Resources/Featured%20image.png)
 
 The app was successfully able to run the scraping for the all of the data. Some fantastic images were returned.
 
